@@ -1,23 +1,15 @@
 # Técnicas de Programação II
 
-## Descrição do Projeto
+## Descrição da Branch
 
-Este projeto será uma aplicação simples de controle de notas de trabalhos/atividades com todas as operações de CRUD (Create, Read, Update, Delete) utilizando **React** no frontend e uma REST API feita em **GO** no backend. O intuito inicialmente desse projeto é desenvolver o backend e melhorar o frontend, se necessário, sendo guiado por testes (TDD). Utilizar a linguagem **GO** ajudará neste processo pois ela é simples e possui testes nativamente.
+Esta branch **trabalhos** irá conter os arquivos relacionados aos trabalhos feitos na disciplina. Cada pasta será referente a um trabalho, sendo tp = Trabalho Prático.
 
--   **Equipe:**
-    -   Jarélio Filho - 399683
+## Descrições dos trabalhos
 
-As convenções utilizadas nos(as) commits/branchs serão:
+-   ### Descrição do trabalho 1
 
--   Criar uma branch diferente para cada atualização (bugfix ou feature) e fazer o merge dela após ser revisada.
--   O primeiro commit de uma atividade deverá ser da forma **[#X] - Nome da Atividade**, os próximos são livres. Podendo **X** ser:
-    -   **FEAT** (Qualquer feature nova)
-    -   **FIX** (Qualquer bugfix ou refatoração)
-    -   **TEST** (Qualquer código relacionado a testes)
-    -   **UTIL** (Qualquer modificação útil. Ex: Modificação do README, CHANGELOG)
+    Fazer os 18 níveis do modo "Main" do aplicativo [Learning Git Branch](https://learngitbranching.js.org/?locale=pt_BR)
 
-## Passos iniciais
+-   ### Descrição do trabalho 2
 
-## Como executar a aplicação
-
-## Como executar os testes
+    Refatorar as classes do pacote tp2 aplicando os princípios S.O.L.I.D
