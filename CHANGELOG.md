@@ -7,6 +7,15 @@ e esse projeto adere à [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.1.0] - 2020-12-21
+
+### Added
+
+- Novo endpoint para consumir todas as grades de um estudante
+- Router ao código de testes para validar as URLs usadas por eles
+- Teste para o novo endpoint
+- Função executada a cada teste para limpar a store utilizada pelo controlador
+
 ## [1.0.0] - 2020-12-17
 
 ### Added

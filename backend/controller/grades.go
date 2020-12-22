@@ -13,6 +13,11 @@ type GradesController struct {
 	store services.GradesStore
 }
 
+func (c *GradesController) CleanStore() {
+	var storeNil services.GradesStore
+	c.store = storeNil
+}
+
 func sendOKResponseMessage(w http.ResponseWriter, message, data string) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -124,10 +129,10 @@ func (c *GradesController) EditGrade(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *GradesController) GetGradesByStudent(w http.ResponseWriter, r *http.Request) {
-	grades := []services.Grade{
-		{ID: "0", Subject: "subject1", Type: "type1", Value: 10, Student: "student1"},
-		{ID: "2", Subject: "subject1", Type: "type1", Value: 10, Student: "student1"},
-	}
+	params := mux.Vars(r)
+
+	student := params["student"]
+	grades := c.store.GetGradesByStudent(student)
 
 	gradesJSON, _ := json.Marshal(grades)
 	sendOKResponseMessage(w, "Successfully retrieved all the grades by student", string(gradesJSON))

@@ -42,6 +42,21 @@ func (g *GradesStore) GetGrade(idS string) *Grade {
 	return &g.store[id]
 }
 
+func (g *GradesStore) GetGradesByStudent(student string) []Grade {
+	if g.store == nil {
+		return make([]Grade, 0)
+	}
+	grades := make([]Grade, 0)
+
+	for i := 0; i < len(g.store); i++ {
+		studentFromStore := g.store[i].Student
+		if studentFromStore == student {
+			grades = append(grades, g.store[i])
+		}
+	}
+	return grades
+}
+
 func (g *GradesStore) PostGrade(grade Grade) *Grade {
 	grade.ID = strconv.Itoa(len(g.store))
 	g.store = append(g.store, grade)
