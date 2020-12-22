@@ -122,3 +122,13 @@ func (c *GradesController) EditGrade(w http.ResponseWriter, r *http.Request) {
 	sendOKResponseMessage(w, fmt.Sprintf("Successfully edited grade with ID %s", string(editedGrade.ID)), string(editedGradeJSON))
 
 }
+
+func (c *GradesController) GetGradesByStudent(w http.ResponseWriter, r *http.Request) {
+	grades := []services.Grade{
+		{ID: "0", Subject: "subject1", Type: "type1", Value: 10, Student: "student1"},
+		{ID: "2", Subject: "subject1", Type: "type1", Value: 10, Student: "student1"},
+	}
+
+	gradesJSON, _ := json.Marshal(grades)
+	sendOKResponseMessage(w, "Successfully retrieved all the grades by student", string(gradesJSON))
+}
