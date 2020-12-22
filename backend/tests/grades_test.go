@@ -214,3 +214,32 @@ func TestDELETEGrade(t *testing.T) {
 		utils.AssertStatus(t, response.Code, http.StatusOK)
 	})
 }
+
+func TestGETGradesByStudent(t *testing.T) {
+	controller := &controller.GradesController{}
+
+	t.Run("get all grades by a student", func(t *testing.T) {
+		grade1 := services.Grade{ID: "0", Subject: "subject1", Type: "type1", Value: 10, Student: "student1"}
+		grade2 := services.Grade{ID: "1", Subject: "subject2", Type: "type2", Value: 10, Student: "student2"}
+		grade3 := services.Grade{ID: "2", Subject: "subject1", Type: "type1", Value: 10, Student: "student1"}
+		grade4 := services.Grade{ID: "3", Subject: "subject2", Type: "type2", Value: 10, Student: "student2"}
+
+		controller.CreateGrade(httptest.NewRecorder(), utils.NewPostGradeRequest(grade1))
+		controller.CreateGrade(httptest.NewRecorder(), utils.NewPostGradeRequest(grade2))
+		controller.CreateGrade(httptest.NewRecorder(), utils.NewPostGradeRequest(grade3))
+		controller.CreateGrade(httptest.NewRecorder(), utils.NewPostGradeRequest(grade4))
+
+		request := utils.NewGetGradesByStudentRequest("student1")
+		response := httptest.NewRecorder()
+
+		controller.GetGradesByStudent(response, request)
+
+		want := []services.Grade{
+			{ID: "0", Subject: "subject1", Type: "type1", Value: 10, Student: "student1"},
+			{ID: "2", Subject: "subject1", Type: "type1", Value: 10, Student: "student1"},
+		}
+		wantJSON, _ := json.Marshal(want)
+		utils.AssertResponseBody(t, response.Body.String(), utils.ResultMessageAndData(utils.GradesByStudent, string(wantJSON[:])))
+		utils.AssertStatus(t, response.Code, http.StatusOK)
+	})
+}

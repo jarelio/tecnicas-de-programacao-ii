@@ -15,6 +15,7 @@ const (
 	ValueShouldBeGreater = "Grade value should be greater than zero"
 	DeleteFailed         = "Failed to delete the grade"
 	EditFailed           = "Failed to edit the grade"
+	GradesByStudent      = "Successfully retrieved all the grades by student"
 )
 
 func ResultMessageAndData(message, data string) string {

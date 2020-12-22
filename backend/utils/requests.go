@@ -9,6 +9,12 @@ import (
 	"github.com/jarelio/tecnicas-de-programacao-ii/backend/services"
 )
 
+func NewGetGradesByStudentRequest(student string) *http.Request {
+	url := fmt.Sprintf("/grades/student/%s", student)
+	req, _ := http.NewRequest(http.MethodGet, url, nil)
+	return req
+}
+
 func NewGetGradesRequest() *http.Request {
 	req, _ := http.NewRequest(http.MethodGet, "/grades", nil)
 	return req
