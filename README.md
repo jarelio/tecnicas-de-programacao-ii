@@ -17,24 +17,38 @@ As convenções utilizadas nos(as) commits/branchs serão:
   - **UTIL** (Qualquer modificação útil. Ex: Modificação do README, CHANGELOG)
 - Caso a atividade se encaixe em mais de um dos títulos é possível citar todos separando por "\_", por exemplo [#FEAT_TEST].
 
-## Passos iniciais
+## Requerimentos
 
 ```properties
-curl -O "https://dl.google.com/go/go1.15.5.linux-amd64.tar.gz"
-
-tar -C /usr/local -xzf go1.15.5.linux-amd64.tar.gz
-
-export PATH=$PATH:/usr/local/go/bin
+go 1.15.5
+npm 7.0.12
+python 3.8.5
+pip 20.0.2
+chromedriver
 ```
 
-## Como executar a aplicação
+## Como executar o backend
 
 ```go
-go run main.go
+go run ./backend/main.go
 ```
 
-## Como executar os testes
+## Como executar os testes do backend
 
 ```go
-go test ./tests/
+go test ./backend/tests/
+```
+
+## Como executar o frontend
+
+```go
+cd ./frontend && npm install
+npm start
+```
+
+## Como executar os testes do frontend
+
+```go
+pip ou pip3 install -r ./frontend/tests/requirements.txt
+cd ./frontend/tests/ && behave
 ```

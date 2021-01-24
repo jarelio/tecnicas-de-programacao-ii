@@ -5,12 +5,17 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/jarelio/tecnicas-de-programacao-ii/backend/controller"
 )
 
 func main() {
 	router := mux.NewRouter()
+
+	header := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS"})
+	origins := handlers.AllowedOrigins([]string{"*"})
 
 	controller := &controller.GradesController{}
 
@@ -23,5 +28,5 @@ func main() {
 
 	port := 8000
 	log.Printf("Starting grades backend @ %v", port)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), router))
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), handlers.CORS(header, methods, origins)(router)))
 }

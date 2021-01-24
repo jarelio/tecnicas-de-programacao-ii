@@ -7,6 +7,23 @@ e esse projeto adere à [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [2.0.0] - 2021-01-24
+
+### Added
+
+- Política de CORS no backend permitindo qualquer requisição e qualquer método
+- Código do frontend feito em React com as operações de add, delete, update e list de grades
+- Testes automatizados nas operações de add e update de uma grade usando behave, selenium e nose
+
+### Updated
+
+- Arquivo .gitignore para ignorar arquivos python
+- README.md com os requerimentos e os passos para executar o frontend e os testes
+
+### Fixed
+
+- Campo de value das grades passa a ser string ao invés de float
+
 ## [1.1.0] - 2020-12-21
 
 ### Added

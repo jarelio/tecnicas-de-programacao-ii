@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/jarelio/tecnicas-de-programacao-ii/backend/services"
@@ -71,7 +72,7 @@ func (c *GradesController) CreateGrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if grade.Value <= 0 {
+	if gradeValue, _ := strconv.Atoi(grade.Value); gradeValue <= 0 {
 		sendBadRequestResponseMessage(w, "Grade value should be greater than zero")
 		return
 	}
@@ -111,7 +112,8 @@ func (c *GradesController) EditGrade(w http.ResponseWriter, r *http.Request) {
 		sendBadRequestResponseMessage(w, "Missing parameters")
 		return
 	}
-	if grade.Value <= 0 {
+
+	if gradeValue, _ := strconv.Atoi(grade.Value); gradeValue <= 0 {
 		sendBadRequestResponseMessage(w, "Grade value should be greater than zero")
 		return
 	}
