@@ -1,11 +1,10 @@
 from behave import *
 from nose.tools import assert_equal
-from pages.addgrade_page import AddGradePage
 from pages.grades_page import GradesPage
-from pages.updategrade_page import UpdateGradePage
+from pages.update_delete_grade_page import UpdateAndDeleteGradePage
 
 gradesPage = GradesPage()
-editGradePage = UpdateGradePage()
+editGradePage = UpdateAndDeleteGradePage()
 
 
 @given(u'que acesso a página de grades')
@@ -51,7 +50,7 @@ def step_impl(context):
 
 @then(u'devo visualizar os dados da grade atualizada')
 def step_impl(context):
-    grade = gradesPage.get_grade_data()
+    grade = gradesPage.get_first_grade_data()
     assert_equal(grade["student"],
                  'Student 2')
     assert_equal(grade["subject"],

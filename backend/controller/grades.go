@@ -108,7 +108,8 @@ func (c *GradesController) EditGrade(w http.ResponseWriter, r *http.Request) {
 		sendBadRequestResponseMessage(w, "Invalid parameters")
 		return
 	}
-	if grade.Student == "" || grade.Subject == "" || grade.Type == "" || grade.ID == "" {
+
+	if grade.Student == "" || grade.Subject == "" || grade.Type == "" {
 		sendBadRequestResponseMessage(w, "Missing parameters")
 		return
 	}
