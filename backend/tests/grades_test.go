@@ -2,6 +2,7 @@ package tests
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -43,29 +44,35 @@ func TestGETGrades(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ResultMessageAndData(utils.AllGrades, "[]"))
-		utils.AssertStatus(t, response.Code, http.StatusOK)
+		expectedResponse := utils.Response{
+			Body:       utils.ResultMessageAndDataToJSON(utils.AllGrades, "[]"),
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
 	})
 
 	t.Run("returns all grades after some insertions", func(t *testing.T) {
 		defer cleanStore()
-		grade := services.Grade{Subject: "subject_test", Type: "type_test", Value: "10", Student: "student_test"}
+
+		grades := generateGrades(2, 2)
+		createGrades(router, grades)
 
 		request := utils.NewGetGradesRequest()
 		response := httptest.NewRecorder()
 
-		router.ServeHTTP(httptest.NewRecorder(), utils.NewPostGradeRequest(grade))
-		router.ServeHTTP(httptest.NewRecorder(), utils.NewPostGradeRequest(grade))
-
 		router.ServeHTTP(response, request)
 
-		want := []services.Grade{
-			{ID: "0", Subject: "subject_test", Type: "type_test", Value: "10", Student: "student_test"},
-			{ID: "1", Subject: "subject_test", Type: "type_test", Value: "10", Student: "student_test"},
+		expectedGradesResponseJSON, _ := json.Marshal(grades)
+
+		expectedResponse := utils.Response{
+			Body:       utils.ResultMessageAndDataToJSON(utils.AllGrades, string(expectedGradesResponseJSON[:])),
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
 		}
-		wantJSON, _ := json.Marshal(want)
-		utils.AssertResponseBody(t, response.Body.String(), utils.ResultMessageAndData(utils.AllGrades, string(wantJSON[:])))
-		utils.AssertStatus(t, response.Code, http.StatusOK)
+
+		utils.AssertResponse(t, response, expectedResponse)
 	})
 }
 
@@ -78,8 +85,13 @@ func TestGETGrade(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ErrorMessage(utils.NotFoundGrade))
-		utils.AssertStatus(t, response.Code, http.StatusBadRequest)
+		expectedResponse := utils.Response{
+			Body:       utils.ErrorMessageToJSON(utils.GradeNotFound),
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
 	})
 
 	t.Run("returns a specific grade", func(t *testing.T) {
@@ -93,8 +105,14 @@ func TestGETGrade(t *testing.T) {
 		router.ServeHTTP(response, request)
 
 		gradeJSON, _ := json.Marshal(grade)
-		utils.AssertResponseBody(t, response.Body.String(), utils.ResultMessageAndData(utils.GradeRetrieved, string(gradeJSON)))
-		utils.AssertStatus(t, response.Code, http.StatusOK)
+
+		expectedResponse := utils.Response{
+			Body:       utils.ResultMessageAndDataToJSON(utils.GradeRetrieved, string(gradeJSON)),
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
 	})
 
 }
@@ -109,8 +127,14 @@ func TestPOSTGrade(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ErrorMessage(utils.InvalidParameters))
-		utils.AssertStatus(t, response.Code, http.StatusBadRequest)
+		expectedResponse := utils.Response{
+			Body:       utils.ErrorMessageToJSON(utils.InvalidParameters),
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 
 	t.Run("insert a grade with missing parameters", func(t *testing.T) {
@@ -121,8 +145,14 @@ func TestPOSTGrade(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ErrorMessage(utils.MissingParameters))
-		utils.AssertStatus(t, response.Code, http.StatusBadRequest)
+		expectedResponse := utils.Response{
+			Body:       utils.ErrorMessageToJSON(utils.MissingParameters),
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 
 	t.Run("insert a grade with value less than 0", func(t *testing.T) {
@@ -133,8 +163,14 @@ func TestPOSTGrade(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ErrorMessage(utils.ValueShouldBeGreater))
-		utils.AssertStatus(t, response.Code, http.StatusBadRequest)
+		expectedResponse := utils.Response{
+			Body:       utils.ErrorMessageToJSON(utils.ValueShouldBeGreater),
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 
 	t.Run("insert a grade", func(t *testing.T) {
@@ -146,8 +182,15 @@ func TestPOSTGrade(t *testing.T) {
 		router.ServeHTTP(response, request)
 
 		gradeJSON, _ := json.Marshal(grade)
-		utils.AssertResponseBody(t, response.Body.String(), utils.ResultMessageAndData(utils.GradeInserted, string(gradeJSON[:])))
-		utils.AssertStatus(t, response.Code, http.StatusOK)
+
+		expectedResponse := utils.Response{
+			Body:       utils.ResultMessageAndDataToJSON(fmt.Sprintf(utils.GradeInserted, string(grade.ID)), string(gradeJSON[:])),
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 }
 
@@ -161,8 +204,14 @@ func TestPUTGrade(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ErrorMessage(utils.InvalidParameters))
-		utils.AssertStatus(t, response.Code, http.StatusBadRequest)
+		expectedResponse := utils.Response{
+			Body:       utils.ErrorMessageToJSON(utils.InvalidParameters),
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 
 	t.Run("edit a grade with missing parameters", func(t *testing.T) {
@@ -173,8 +222,14 @@ func TestPUTGrade(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ErrorMessage(utils.MissingParameters))
-		utils.AssertStatus(t, response.Code, http.StatusBadRequest)
+		expectedResponse := utils.Response{
+			Body:       utils.ErrorMessageToJSON(utils.MissingParameters),
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 
 	t.Run("edit a grade with value less than 0", func(t *testing.T) {
@@ -185,8 +240,14 @@ func TestPUTGrade(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ErrorMessage(utils.ValueShouldBeGreater))
-		utils.AssertStatus(t, response.Code, http.StatusBadRequest)
+		expectedResponse := utils.Response{
+			Body:       utils.ErrorMessageToJSON(utils.ValueShouldBeGreater),
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 
 	t.Run("edit a non existent grade", func(t *testing.T) {
@@ -197,8 +258,14 @@ func TestPUTGrade(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ErrorMessage(utils.EditFailed))
-		utils.AssertStatus(t, response.Code, http.StatusBadRequest)
+		expectedResponse := utils.Response{
+			Body:       utils.ErrorMessageToJSON(utils.EditFailed),
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 
 	t.Run("edit a grade", func(t *testing.T) {
@@ -213,8 +280,15 @@ func TestPUTGrade(t *testing.T) {
 		router.ServeHTTP(response, request)
 
 		gradeJSON, _ := json.Marshal(grade)
-		utils.AssertResponseBody(t, response.Body.String(), utils.ResultMessageAndData(utils.GradeEdited, string(gradeJSON[:])))
-		utils.AssertStatus(t, response.Code, http.StatusOK)
+
+		expectedResponse := utils.Response{
+			Body:       utils.ResultMessageAndDataToJSON(fmt.Sprintf(utils.GradeEdited, string(grade.ID)), string(gradeJSON[:])),
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 }
 
@@ -227,8 +301,14 @@ func TestDELETEGrade(t *testing.T) {
 
 		router.ServeHTTP(response, request)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ErrorMessage(utils.DeleteFailed))
-		utils.AssertStatus(t, response.Code, http.StatusBadRequest)
+		expectedResponse := utils.Response{
+			Body:       utils.ErrorMessageToJSON(utils.DeleteFailed),
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 
 	t.Run("delete a grade successfully", func(t *testing.T) {
@@ -244,8 +324,14 @@ func TestDELETEGrade(t *testing.T) {
 
 		gradeJSON, _ := json.Marshal(grade)
 
-		utils.AssertResponseBody(t, response.Body.String(), utils.ResultMessageAndData(utils.GradeDeleted, string(gradeJSON[:])))
-		utils.AssertStatus(t, response.Code, http.StatusOK)
+		expectedResponse := utils.Response{
+			Body:       utils.ResultMessageAndDataToJSON(fmt.Sprintf(utils.GradeDeleted, string(grade.ID)), string(gradeJSON[:])),
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		utils.AssertResponse(t, response, expectedResponse)
+
 	})
 }
 
@@ -253,27 +339,60 @@ func TestGETGradesByStudent(t *testing.T) {
 
 	t.Run("get all grades by a student", func(t *testing.T) {
 		defer cleanStore()
-		grade1 := services.Grade{ID: "0", Subject: "subject1", Type: "type1", Value: "10", Student: "student1"}
-		grade2 := services.Grade{ID: "1", Subject: "subject2", Type: "type2", Value: "10", Student: "student2"}
-		grade3 := services.Grade{ID: "2", Subject: "subject1", Type: "type1", Value: "10", Student: "student1"}
-		grade4 := services.Grade{ID: "3", Subject: "subject2", Type: "type2", Value: "10", Student: "student2"}
 
-		router.ServeHTTP(httptest.NewRecorder(), utils.NewPostGradeRequest(grade1))
-		router.ServeHTTP(httptest.NewRecorder(), utils.NewPostGradeRequest(grade2))
-		router.ServeHTTP(httptest.NewRecorder(), utils.NewPostGradeRequest(grade3))
-		router.ServeHTTP(httptest.NewRecorder(), utils.NewPostGradeRequest(grade4))
+		grades := generateGrades(2, 4)
+		createGrades(router, grades)
 
 		request := utils.NewGetGradesByStudentRequest("student1")
 		response := httptest.NewRecorder()
-
 		router.ServeHTTP(response, request)
 
-		want := []services.Grade{
-			{ID: "0", Subject: "subject1", Type: "type1", Value: "10", Student: "student1"},
-			{ID: "2", Subject: "subject1", Type: "type1", Value: "10", Student: "student1"},
+		expectedGrades := getGradesByStudent("student1", grades)
+		expectedGradesJSON, _ := json.Marshal(expectedGrades)
+
+		expectedResponse := utils.Response{
+			Body:       utils.ResultMessageAndDataToJSON(utils.GradesByStudent, string(expectedGradesJSON[:])),
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
 		}
-		wantJSON, _ := json.Marshal(want)
-		utils.AssertResponseBody(t, response.Body.String(), utils.ResultMessageAndData(utils.GradesByStudent, string(wantJSON[:])))
-		utils.AssertStatus(t, response.Code, http.StatusOK)
+
+		utils.AssertResponse(t, response, expectedResponse)
 	})
+}
+
+func generateGrades(numberOfStudents, numberOfGrades int) []services.Grade {
+	grades := make([]services.Grade, 0)
+	students := make([]string, 0)
+
+	for studentNumber := 0; studentNumber < numberOfStudents; studentNumber++ {
+		students = append(students, fmt.Sprintf("student%d", studentNumber))
+	}
+
+	for gradeNumber := 0; gradeNumber < numberOfGrades; gradeNumber++ {
+		subject := fmt.Sprintf("subject%d", gradeNumber)
+		gradeType := fmt.Sprintf("type%d", gradeNumber)
+		value := "10"
+		studentID := gradeNumber % numberOfStudents
+		grades = append(grades, services.Grade{ID: fmt.Sprint(gradeNumber), Subject: subject, Type: gradeType, Value: value, Student: students[studentID]})
+	}
+
+	return grades
+}
+
+func createGrades(router *mux.Router, grades []services.Grade) {
+	for _, grade := range grades {
+		router.ServeHTTP(httptest.NewRecorder(), utils.NewPostGradeRequest(grade))
+	}
+}
+
+func getGradesByStudent(student string, grades []services.Grade) []services.Grade {
+	gradesByStudent := make([]services.Grade, 0)
+
+	for _, grade := range grades {
+		if grade.Student == student {
+			gradesByStudent = append(gradesByStudent, grade)
+		}
+	}
+
+	return gradesByStudent
 }

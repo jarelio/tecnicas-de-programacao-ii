@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jarelio/tecnicas-de-programacao-ii/backend/services"
+	"github.com/jarelio/tecnicas-de-programacao-ii/backend/utils"
 )
 
 type GradesController struct {
@@ -19,29 +20,23 @@ func (c *GradesController) CleanStore() {
 	c.store = storeNil
 }
 
-func sendOKResponseMessage(w http.ResponseWriter, message, data string) {
+func sendHTTPSuccessResponseMessage(w http.ResponseWriter, message, data string, statusCode int) {
 	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	var returnJSON string
-	if data == "" {
-		returnJSON = fmt.Sprintf(`{"result": {"message": "%s"}}`, message)
-	} else {
-		returnJSON = fmt.Sprintf(`{"result": {"message": "%s", "data": %s}}`, message, data)
-	}
-	fmt.Fprintln(w, returnJSON)
+	w.WriteHeader(statusCode)
+	fmt.Fprint(w, utils.ResultMessageAndDataToJSON(message, data))
 }
 
-func sendBadRequestResponseMessage(w http.ResponseWriter, errorString string) {
+func sendHTTPErrorResponseMessage(w http.ResponseWriter, errorMessage string, statusCode int) {
 	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
-	fmt.Fprintln(w, fmt.Sprintf(`{"error": "%s"}`, errorString))
+	w.WriteHeader(statusCode)
+	fmt.Fprint(w, utils.ErrorMessageToJSON(errorMessage))
 }
 
 func (c *GradesController) GetGrades(w http.ResponseWriter, r *http.Request) {
 	grades := c.store.GetGrades()
 
 	gradesJSON, _ := json.Marshal(grades)
-	sendOKResponseMessage(w, "Successfully retrieved all grades", string(gradesJSON))
+	sendHTTPSuccessResponseMessage(w, utils.AllGrades, string(gradesJSON), http.StatusOK)
 }
 
 func (c *GradesController) GetGrade(w http.ResponseWriter, r *http.Request) {
@@ -49,11 +44,11 @@ func (c *GradesController) GetGrade(w http.ResponseWriter, r *http.Request) {
 	grade := c.store.GetGrade(params["id"])
 
 	if grade == nil {
-		sendBadRequestResponseMessage(w, "Grade not found")
+		sendHTTPErrorResponseMessage(w, utils.GradeNotFound, http.StatusBadRequest)
 		return
 	} else {
 		gradeJSON, _ := json.Marshal(grade)
-		sendOKResponseMessage(w, "Successfully retrieved the grade", string(gradeJSON))
+		sendHTTPSuccessResponseMessage(w, utils.GradeRetrieved, string(gradeJSON), http.StatusOK)
 		return
 	}
 }
@@ -63,23 +58,23 @@ func (c *GradesController) CreateGrade(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&grade)
 
 	if err != nil {
-		sendBadRequestResponseMessage(w, "Invalid parameters")
+		sendHTTPErrorResponseMessage(w, utils.InvalidParameters, http.StatusBadRequest)
 		return
 	}
 
 	if grade.Student == "" || grade.Subject == "" || grade.Type == "" {
-		sendBadRequestResponseMessage(w, "Missing parameters")
+		sendHTTPErrorResponseMessage(w, utils.MissingParameters, http.StatusBadRequest)
 		return
 	}
 
 	if gradeValue, _ := strconv.Atoi(grade.Value); gradeValue <= 0 {
-		sendBadRequestResponseMessage(w, "Grade value should be greater than zero")
+		sendHTTPErrorResponseMessage(w, utils.ValueShouldBeGreater, http.StatusBadRequest)
 		return
 	}
 
 	gradeInserted := c.store.PostGrade(grade)
 	gradeJSON, _ := json.Marshal(gradeInserted)
-	sendOKResponseMessage(w, fmt.Sprintf("Successfully inserted grade with ID %s", gradeInserted.ID), string(gradeJSON))
+	sendHTTPSuccessResponseMessage(w, fmt.Sprintf(utils.GradeInserted, gradeInserted.ID), string(gradeJSON), http.StatusOK)
 }
 func (c *GradesController) DeleteGrade(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
@@ -89,12 +84,12 @@ func (c *GradesController) DeleteGrade(w http.ResponseWriter, r *http.Request) {
 	deletedGrade := c.store.DeleteGrade(id)
 
 	if deletedGrade == nil {
-		sendBadRequestResponseMessage(w, "Failed to delete the grade")
+		sendHTTPErrorResponseMessage(w, utils.DeleteFailed, http.StatusBadRequest)
 		return
 	}
 
 	deletedGradeJSON, _ := json.Marshal(deletedGrade)
-	sendOKResponseMessage(w, fmt.Sprintf("Successfully deleted grade with ID %s", deletedGrade.ID), string(deletedGradeJSON))
+	sendHTTPSuccessResponseMessage(w, fmt.Sprintf(utils.GradeDeleted, deletedGrade.ID), string(deletedGradeJSON), http.StatusOK)
 
 }
 
@@ -105,29 +100,29 @@ func (c *GradesController) EditGrade(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&grade)
 
 	if err != nil {
-		sendBadRequestResponseMessage(w, "Invalid parameters")
+		sendHTTPErrorResponseMessage(w, utils.InvalidParameters, http.StatusBadRequest)
 		return
 	}
 
 	if grade.Student == "" || grade.Subject == "" || grade.Type == "" {
-		sendBadRequestResponseMessage(w, "Missing parameters")
+		sendHTTPErrorResponseMessage(w, utils.MissingParameters, http.StatusBadRequest)
 		return
 	}
 
 	if gradeValue, _ := strconv.Atoi(grade.Value); gradeValue <= 0 {
-		sendBadRequestResponseMessage(w, "Grade value should be greater than zero")
+		sendHTTPErrorResponseMessage(w, utils.ValueShouldBeGreater, http.StatusBadRequest)
 		return
 	}
 
 	editedGrade := c.store.EditGrade(params["id"], grade)
 
 	if editedGrade == nil {
-		sendBadRequestResponseMessage(w, "Failed to edit the grade")
+		sendHTTPErrorResponseMessage(w, utils.EditFailed, http.StatusBadRequest)
 		return
 	}
 
 	editedGradeJSON, _ := json.Marshal(editedGrade)
-	sendOKResponseMessage(w, fmt.Sprintf("Successfully edited grade with ID %s", string(editedGrade.ID)), string(editedGradeJSON))
+	sendHTTPSuccessResponseMessage(w, fmt.Sprintf(utils.GradeEdited, string(editedGrade.ID)), string(editedGradeJSON), http.StatusOK)
 
 }
 
@@ -138,5 +133,5 @@ func (c *GradesController) GetGradesByStudent(w http.ResponseWriter, r *http.Req
 	grades := c.store.GetGradesByStudent(student)
 
 	gradesJSON, _ := json.Marshal(grades)
-	sendOKResponseMessage(w, "Successfully retrieved all the grades by student", string(gradesJSON))
+	sendHTTPSuccessResponseMessage(w, utils.GradesByStudent, string(gradesJSON), http.StatusOK)
 }

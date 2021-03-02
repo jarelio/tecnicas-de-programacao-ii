@@ -1,34 +1,42 @@
 package utils
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func AssertResponseBody(t *testing.T, got, want string) {
+type Response struct {
+	Header     http.Header
+	Body       string
+	StatusCode int
+}
+
+func assertResponseBody(t *testing.T, got, want string) {
 	t.Helper()
 	if got != want {
 		t.Errorf("Response body is wrong, got '%s' want '%s'", got, want)
 	}
 }
 
-// func AssertGrades(t *testing.T, got, want []services.Grade) {
-// 	t.Helper()
-// 	if !reflect.DeepEqual(got, want) {
-// 		t.Errorf("Response body is wrong, got %v want %v", got, want)
-// 	}
-// }
-
-func AssertContentType(t *testing.T, response *httptest.ResponseRecorder, want string) {
+func assertContentType(t *testing.T, responseContentType, expectedContentType string) {
 	t.Helper()
-	if response.Result().Header.Get("content-type") != want {
-		t.Errorf("response does not have content-type of %s, got %v", want, response.Result().Header)
+	if responseContentType != expectedContentType {
+		t.Errorf("response does not have content-type of %s, got %s", expectedContentType, responseContentType)
 	}
 }
 
-func AssertStatus(t *testing.T, code, want int) {
+func assertStatus(t *testing.T, code, want int) {
 	t.Helper()
 	if code != want {
 		t.Errorf("response does not have status code of %d, got %d", want, code)
 	}
+}
+
+func AssertResponse(t *testing.T, response *httptest.ResponseRecorder, expectedResponse Response) {
+	t.Helper()
+
+	assertResponseBody(t, response.Body.String(), expectedResponse.Body)
+	assertStatus(t, response.Code, expectedResponse.StatusCode)
+	assertContentType(t, response.Result().Header.Get("content-type"), expectedResponse.Header.Get("content-type"))
 }
