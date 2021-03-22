@@ -1,94 +1,83 @@
 package services
 
 import (
+	"fmt"
 	"strconv"
+
+	"github.com/jarelio/tecnicas-de-programacao-ii/backend/services/dao"
+	"github.com/jarelio/tecnicas-de-programacao-ii/backend/services/model"
+	"github.com/jarelio/tecnicas-de-programacao-ii/backend/utils"
 )
 
-type Grade struct {
-	ID      string `json:"id"`
-	Subject string `json:"subject"`
-	Type    string `json:"type"`
-	Value   string `json:"value"`
-	Student string `json:"student"`
+type GradesService struct {
+	store dao.GradesStore
 }
 
-type InvalidGrade struct {
-	ID      string            `json:"id"`
-	Subject map[string]string `json:"subject"`
-	Type    string            `json:"type"`
-	Value   string            `json:"value"`
-	Student string            `json:"student"`
+func (gs *GradesService) CleanStore() {
+	var emptyStore dao.GradesStore
+	gs.store = emptyStore
 }
 
-type GradesStore struct {
-	store []Grade
-}
-
-func (g *GradesStore) GetGrades() []Grade {
-	if g.store == nil {
-		return make([]Grade, 0)
-	}
-	return g.store
-}
-
-func (g *GradesStore) GetGrade(idS string) *Grade {
-	id, _ := strconv.Atoi(idS)
-	if len(g.store)-1 < id {
-		return nil
-	}
-	if g.store[id].Student == "" {
-		return nil
-	}
-	return &g.store[id]
-}
-
-func (g *GradesStore) GetGradesByStudent(student string) []Grade {
-	if g.store == nil {
-		return make([]Grade, 0)
-	}
-	grades := make([]Grade, 0)
-
-	for i := 0; i < len(g.store); i++ {
-		studentFromStore := g.store[i].Student
-		if studentFromStore == student {
-			grades = append(grades, g.store[i])
-		}
-	}
+func (gs *GradesService) GetGrades() []model.Grade {
+	grades := gs.store.GetGrades()
 	return grades
 }
 
-func (g *GradesStore) PostGrade(grade Grade) *Grade {
-	grade.ID = strconv.Itoa(len(g.store))
-	g.store = append(g.store, grade)
-	return &grade
+func (gs *GradesService) GetGrade(gradeID string) (*model.Grade, error) {
+	grade := gs.store.GetGrade(gradeID)
+
+	if grade == nil {
+		return nil, fmt.Errorf("%s", utils.GradeNotFound)
+	}
+
+	return grade, nil
 }
 
-func (g *GradesStore) DeleteGrade(idS string) *Grade {
-	id, _ := strconv.Atoi(idS)
+func (gs *GradesService) CreateGrade(grade model.Grade) (*model.Grade, error) {
 
-	if len(g.store)-1 < id {
-		return nil
+	if grade.Student == "" || grade.Subject == "" || grade.Type == "" {
+		return nil, fmt.Errorf("%s", utils.MissingParameters)
 	}
 
-	if g.store[id].Student == "" {
-		return nil
+	if gradeValue, _ := strconv.Atoi(grade.Value); gradeValue <= 0 {
+		return nil, fmt.Errorf("%s", utils.ValueShouldBeGreater)
 	}
-	grade := g.store[id]
-	g.store[id] = Grade{ID: idS}
-	return &grade
+
+	insertedGrade := gs.store.PostGrade(grade)
+	return insertedGrade, nil
 }
 
-func (g *GradesStore) EditGrade(idS string, grade Grade) *Grade {
-	id, _ := strconv.Atoi(idS)
+func (gs *GradesService) DeleteGrade(gradeID string) (*model.Grade, error) {
 
-	if len(g.store)-1 < id {
-		return nil
+	deletedGrade := gs.store.DeleteGrade(gradeID)
+
+	if deletedGrade == nil {
+		return nil, fmt.Errorf("%s", utils.DeleteFailed)
 	}
 
-	if g.store[id].Student == "" {
-		return nil
+	return deletedGrade, nil
+}
+
+func (gs *GradesService) EditGrade(gradeID string, grade model.Grade) (*model.Grade, error) {
+
+	if grade.Student == "" || grade.Subject == "" || grade.Type == "" {
+		return nil, fmt.Errorf("%s", utils.MissingParameters)
 	}
 
-	g.store[id] = grade
-	return &grade
+	if gradeValue, _ := strconv.Atoi(grade.Value); gradeValue <= 0 {
+		return nil, fmt.Errorf("%s", utils.ValueShouldBeGreater)
+	}
+
+	editedGrade := gs.store.EditGrade(gradeID, grade)
+
+	if editedGrade == nil {
+		return nil, fmt.Errorf("%s", utils.EditFailed)
+	}
+
+	return editedGrade, nil
+}
+
+func (gs *GradesService) GetGradesByStudent(student string) []model.Grade {
+	grades := gs.store.GetGradesByStudent(student)
+	return grades
 }
