@@ -338,6 +338,22 @@ func TestDELETEGrade(t *testing.T) {
 
 func TestGETGradesByStudent(t *testing.T) {
 
+	t.Run("get all grades by a student when student has no grades", func(t *testing.T) {
+		defer cleanStore()
+
+		request := testutils.NewGetGradesByStudentRequest("student1")
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, request)
+
+		expectedResponse := testutils.Response{
+			Body:       utils.ResultMessageAndDataToJSON(utils.GradesByStudent, "[]"),
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}
+
+		testutils.AssertResponse(t, response, expectedResponse)
+	})
+
 	t.Run("get all grades by a student", func(t *testing.T) {
 		defer cleanStore()
 

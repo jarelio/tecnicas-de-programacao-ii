@@ -35,11 +35,11 @@ func (gs *GradesService) GetGrade(gradeID string) (*model.Grade, error) {
 
 func (gs *GradesService) CreateGrade(grade model.Grade) (*model.Grade, error) {
 
-	if grade.Student == "" || grade.Subject == "" || grade.Type == "" {
+	if gradeHasEmptyValues(grade) {
 		return nil, fmt.Errorf("%s", utils.MissingParameters)
 	}
 
-	if gradeValue, _ := strconv.Atoi(grade.Value); gradeValue <= 0 {
+	if gradeValueIsLowerThanZero(grade.Value) {
 		return nil, fmt.Errorf("%s", utils.ValueShouldBeGreater)
 	}
 
@@ -60,11 +60,11 @@ func (gs *GradesService) DeleteGrade(gradeID string) (*model.Grade, error) {
 
 func (gs *GradesService) EditGrade(gradeID string, grade model.Grade) (*model.Grade, error) {
 
-	if grade.Student == "" || grade.Subject == "" || grade.Type == "" {
+	if gradeHasEmptyValues(grade) {
 		return nil, fmt.Errorf("%s", utils.MissingParameters)
 	}
 
-	if gradeValue, _ := strconv.Atoi(grade.Value); gradeValue <= 0 {
+	if gradeValueIsLowerThanZero(grade.Value) {
 		return nil, fmt.Errorf("%s", utils.ValueShouldBeGreater)
 	}
 
@@ -80,4 +80,13 @@ func (gs *GradesService) EditGrade(gradeID string, grade model.Grade) (*model.Gr
 func (gs *GradesService) GetGradesByStudent(student string) []model.Grade {
 	grades := gs.store.GetGradesByStudent(student)
 	return grades
+}
+
+func gradeHasEmptyValues(grade model.Grade) bool {
+	return grade.Student == "" || grade.Subject == "" || grade.Type == "" || grade.Value == ""
+}
+
+func gradeValueIsLowerThanZero(value string) bool {
+	gradeValue, _ := strconv.Atoi(value)
+	return gradeValue <= 0
 }

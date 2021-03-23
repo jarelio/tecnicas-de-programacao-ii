@@ -11,6 +11,11 @@ import (
 	"github.com/jarelio/tecnicas-de-programacao-ii/backend/utils"
 )
 
+const (
+	//Parameter used in received requests to identify requested grade
+	gradeIDParam = "id"
+)
+
 type GradesController struct {
 	GradesService services.GradesService
 }
@@ -35,7 +40,7 @@ func (c *GradesController) GetGrades(w http.ResponseWriter, r *http.Request) {
 
 func (c *GradesController) GetGrade(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	grade, err := c.GradesService.GetGrade(params["id"])
+	grade, err := c.GradesService.GetGrade(params[gradeIDParam])
 
 	if err != nil {
 		sendHTTPErrorResponseMessage(w, err.Error(), http.StatusBadRequest)
@@ -68,9 +73,8 @@ func (c *GradesController) CreateGrade(w http.ResponseWriter, r *http.Request) {
 
 func (c *GradesController) DeleteGrade(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
 
-	deletedGrade, err := c.GradesService.DeleteGrade(id)
+	deletedGrade, err := c.GradesService.DeleteGrade(params[gradeIDParam])
 
 	if err != nil {
 		sendHTTPErrorResponseMessage(w, err.Error(), http.StatusBadRequest)
@@ -92,7 +96,7 @@ func (c *GradesController) EditGrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	editedGrade, err := c.GradesService.EditGrade(params["id"], grade)
+	editedGrade, err := c.GradesService.EditGrade(params[gradeIDParam], grade)
 
 	if err != nil {
 		sendHTTPErrorResponseMessage(w, err.Error(), http.StatusBadRequest)
